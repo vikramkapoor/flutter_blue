@@ -168,7 +168,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 }
 
                 if (!hasPermssions) {
-                    ContextCompat.requestPermissions(
+                    ActivityCompat.requestPermissions(
                             activity,
                             new String[] {
                                     Manifest.permission.ACCESS_COARSE_LOCATION
