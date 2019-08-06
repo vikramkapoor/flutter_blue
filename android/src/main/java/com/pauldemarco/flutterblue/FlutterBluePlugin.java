@@ -640,7 +640,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
                     Protos.ScanResult scanResult = ProtoMaker.from(result.getDevice(), result);
-                    invokeMethodUIThread("ScanResult", scanResult.toByteArray());
+                    invokeMethod("ScanResult", scanResult.toByteArray());
                 }
 
                 @Override
@@ -689,7 +689,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 public void onLeScan(final BluetoothDevice bluetoothDevice, int rssi,
                                      byte[] scanRecord) {
                     Protos.ScanResult scanResult = ProtoMaker.from(bluetoothDevice, scanRecord, rssi);
-                    invokeMethodUIThread("ScanResult", scanResult.toByteArray());
+                    invokeMethod("ScanResult", scanResult.toByteArray());
                 }
             };
         }
