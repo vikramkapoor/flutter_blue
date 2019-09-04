@@ -843,8 +843,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
 
     private void invokeMethodUIThread(final String name, final byte[] byteArray)
     {
-        activity.runOnUiThread(
-                new Runnable() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         channel.invokeMethod(name, byteArray);
@@ -854,12 +853,12 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
 
         private void invokeMethod(final String name, final byte[] byteArray)
     {
-                new Runnable() {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         channel.invokeMethod(name, byteArray);
                     }
-                };
+                });
     }
 
 }
