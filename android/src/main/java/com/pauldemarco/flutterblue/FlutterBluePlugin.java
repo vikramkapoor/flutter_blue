@@ -85,7 +85,8 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
         this.registrar = r;
         this.activity = r.activity();
         this.channel = new MethodChannel(registrar.messenger(), NAMESPACE+"/methods");
-        this.stateChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/state");        this.mBluetoothManager = (BluetoothManager) r.context().getSystemService(Context.BLUETOOTH_SERVICE);
+        this.stateChannel = new EventChannel(registrar.messenger(), NAMESPACE+"/state");
+        this.mBluetoothManager = (BluetoothManager) r.context().getSystemService(Context.BLUETOOTH_SERVICE);
         this.mBluetoothAdapter = mBluetoothManager.getAdapter();
         channel.setMethodCallHandler(this);
         stateChannel.setStreamHandler(stateHandler);
@@ -646,7 +647,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
                     Protos.ScanResult scanResult = ProtoMaker.from(result.getDevice(), result);
-                    invokeMethodUIThread("ScanResult", scanResult.toByteArray());
+                    invokeMethod("ScanResult", scanResult.toByteArray());
                 }
 
                 @Override
@@ -695,7 +696,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 public void onLeScan(final BluetoothDevice bluetoothDevice, int rssi,
                                      byte[] scanRecord) {
                     Protos.ScanResult scanResult = ProtoMaker.from(bluetoothDevice, scanRecord, rssi);
-                    invokeMethodUIThread("ScanResult", scanResult.toByteArray());
+                    invokeMethod("ScanResult", scanResult.toByteArray());
                 }
             };
         }
@@ -725,7 +726,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                     gatt.close();
                 }
             }
-            invokeMethodUIThread("DeviceState", ProtoMaker.from(gatt.getDevice(), newState).toByteArray());
+            invokeMethod("DeviceState", ProtoMaker.from(gatt.getDevice(), newState).toByteArray());
         }
 
         @Override
@@ -736,7 +737,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
             for(BluetoothGattService s : gatt.getServices()) {
                 p.addServices(ProtoMaker.from(gatt.getDevice(), s, gatt));
             }
-            invokeMethodUIThread("DiscoverServicesResult", p.build().toByteArray());
+            invokeMethod("DiscoverServicesResult", p.build().toByteArray());
         }
 
         @Override
@@ -745,7 +746,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
             Protos.ReadCharacteristicResponse.Builder p = Protos.ReadCharacteristicResponse.newBuilder();
             p.setRemoteId(gatt.getDevice().getAddress());
             p.setCharacteristic(ProtoMaker.from(gatt.getDevice(), characteristic, gatt));
-            invokeMethodUIThread("ReadCharacteristicResponse", p.build().toByteArray());
+            invokeMethod("ReadCharacteristicResponse", p.build().toByteArray());
         }
 
         @Override
@@ -758,7 +759,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
             Protos.WriteCharacteristicResponse.Builder p = Protos.WriteCharacteristicResponse.newBuilder();
             p.setRequest(request);
             p.setSuccess(status == BluetoothGatt.GATT_SUCCESS);
-            invokeMethodUIThread("WriteCharacteristicResponse", p.build().toByteArray());
+            invokeMethod("WriteCharacteristicResponse", p.build().toByteArray());
         }
 
         @Override
@@ -767,7 +768,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
             Protos.OnCharacteristicChanged.Builder p = Protos.OnCharacteristicChanged.newBuilder();
             p.setRemoteId(gatt.getDevice().getAddress());
             p.setCharacteristic(ProtoMaker.from(gatt.getDevice(), characteristic, gatt));
-            invokeMethodUIThread("OnCharacteristicChanged", p.build().toByteArray());
+            invokeMethod("OnCharacteristicChanged", p.build().toByteArray());
         }
 
         @Override
@@ -795,7 +796,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
             Protos.ReadDescriptorResponse.Builder p = Protos.ReadDescriptorResponse.newBuilder();
             p.setRequest(q);
             p.setValue(ByteString.copyFrom(descriptor.getValue()));
-            invokeMethodUIThread("ReadDescriptorResponse", p.build().toByteArray());
+            invokeMethod("ReadDescriptorResponse", p.build().toByteArray());
         }
 
         @Override
@@ -809,14 +810,14 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
             Protos.WriteDescriptorResponse.Builder p = Protos.WriteDescriptorResponse.newBuilder();
             p.setRequest(request);
             p.setSuccess(status == BluetoothGatt.GATT_SUCCESS);
-            invokeMethodUIThread("WriteDescriptorResponse", p.build().toByteArray());
+            invokeMethod("WriteDescriptorResponse", p.build().toByteArray());
 
             if(descriptor.getUuid().compareTo(CCCD_ID) == 0) {
                 // SetNotificationResponse
                 Protos.SetNotificationResponse.Builder q = Protos.SetNotificationResponse.newBuilder();
                 q.setRemoteId(gatt.getDevice().getAddress());
                 q.setCharacteristic(ProtoMaker.from(gatt.getDevice(), descriptor.getCharacteristic(), gatt));
-                invokeMethodUIThread("SetNotificationResponse", q.build().toByteArray());
+                invokeMethod("SetNotificationResponse", q.build().toByteArray());
             }
         }
 
@@ -849,8 +850,17 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
 
     private void invokeMethodUIThread(final String name, final byte[] byteArray)
     {
-        activity.runOnUiThread(
-                new Runnable() {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        channel.invokeMethod(name, byteArray);
+                    }
+                });
+    }
+
+        private void invokeMethod(final String name, final byte[] byteArray)
+    {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         channel.invokeMethod(name, byteArray);
