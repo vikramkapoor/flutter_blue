@@ -29,6 +29,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -457,7 +459,10 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 try {
                     gattServer = locateGatt(request.getRemoteId());
                     characteristic = locateCharacteristic(gattServer, request.getServiceUuid(), request.getSecondaryServiceUuid(), request.getCharacteristicUuid());
+                    
                     cccDescriptor = characteristic.getDescriptor(CCCD_ID);
+                    if (cccDescriptor != null)
+                        log(LogLevel.DEBUG, "[setNotification] status: " + " cccDescriptor: " + cccDescriptor.toString());
                     if(cccDescriptor == null) {
                         throw new Exception("could not locate CCCD descriptor for characteristic: " +characteristic.getUuid().toString());
                     }
