@@ -29,6 +29,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.os.Looper;
+import android.os.Handler;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
