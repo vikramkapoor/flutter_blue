@@ -464,7 +464,8 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                     if (cccDescriptor != null)
                         log(LogLevel.DEBUG, "[setNotification] status: " + " cccDescriptor: " + cccDescriptor.toString());
                     if(cccDescriptor == null) {
-                        throw new Exception("could not locate CCCD descriptor for characteristic: " +characteristic.getUuid().toString());
+                        log(LogLevel.INFO, "could not locate CCCD descriptor for characteristic: " +characteristic.getUuid().toString());
+                        //throw new Exception("could not locate CCCD descriptor for characteristic: " +characteristic.getUuid().toString());
                     }
                 } catch(Exception e) {
                     result.error("set_notification_error", e.getMessage(), null);
