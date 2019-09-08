@@ -459,7 +459,7 @@ public class FlutterBluePlugin implements MethodCallHandler, RequestPermissionsR
                 try {
                     gattServer = locateGatt(request.getRemoteId());
                     characteristic = locateCharacteristic(gattServer, request.getServiceUuid(), request.getSecondaryServiceUuid(), request.getCharacteristicUuid());
-                    
+
                     cccDescriptor = characteristic.getDescriptor(CCCD_ID);
                     if (cccDescriptor != null)
                         log(LogLevel.DEBUG, "[setNotification] status: " + " cccDescriptor: " + cccDescriptor.toString());
